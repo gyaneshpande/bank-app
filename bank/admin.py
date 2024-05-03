@@ -1,5 +1,6 @@
 from django.contrib import admin
-from bank.models import Account, Customer, CheckingAccount, SavingAccount, LoanAccount, HomeInsurance, HomeLoan, StudentLoan, PersonalLoan, Insurance, University, StudentUniversity
+from django.contrib.auth.admin import UserAdmin
+from bank.models import Account, Customer, CheckingAccount, SavingAccount, LoanAccount, HomeInsurance, HomeLoan, StudentLoan, PersonalLoan, Insurance, University, StudentUniversity, CustomUser
 
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'account_type', 'cust_id')
@@ -23,3 +24,4 @@ admin.site.register(PersonalLoan)
 admin.site.register(Insurance)
 admin.site.register(University)
 admin.site.register(StudentUniversity)
+admin.site.register(CustomUser, UserAdmin)

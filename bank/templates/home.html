@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-12">
+  <h2 class="text-3xl font-semibold mb-6">Welcome to Our Banking System</h2>
+
+  <p class="mb-6">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vestibulum purus id felis ultrices, eu dapibus dui efficitur. Mauris sed vestibulum leo, in condimentum urna.</p>
+
+  <div class="flex space-x-4">
+    <a href="{% url 'login' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Login</a>
+    <a href="{% url 'register' %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Register</a>
+  </div>
+</div>
+{% endblock %}

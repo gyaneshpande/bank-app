@@ -1,5 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 STATE_CHOICES = (
@@ -66,8 +69,10 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
-        return f'{self.cust_id}'
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['cust_id'], name='unique_customer')
+        ]
 
 class Account(models.Model):
     ACCOUNT_TYPE_CHOICES = (
@@ -182,3 +187,40 @@ class HomeInsurance(models.Model):
     yearly_ins_prem = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     company_id = models.ForeignKey(Insurance, on_delete=models.CASCADE)
     home_loan_id = models.ForeignKey(HomeLoan, on_delete=models.CASCADE)
+    
+class CustomUser(AbstractUser):
+    street = models.CharField(max_length=30, null=True)
+    city = models.CharField(max_length=30, null=True)
+    state = models.CharField(max_length=2, null=True, choices=STATE_CHOICES)
+    zipcode = models.CharField(max_length=10, null=True)
+
+    class Meta:
+    # Add the unique_together constraint to ensure that usernames are unique
+        unique_together = ('username',)
+
+    # Define unique related_name attributes for groups and user_permissions
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        related_name='custom_user_groups'  # Provide a unique related_name
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        related_name='custom_user_permissions'  # Provide a unique related_name
+    )
+
+@receiver(post_save, sender=CustomUser)
+def create_customer_profile(sender, instance, created, **kwargs):
+    if created:
+        Customer.objects.create(
+            first_name=instance.first_name,
+            last_name=instance.last_name,
+            street=instance.street,
+            city=instance.city,
+            state=instance.state,
+            zipcode=instance.zipcode
+        )
+
