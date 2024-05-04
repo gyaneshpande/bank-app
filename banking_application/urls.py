@@ -21,8 +21,15 @@ from bank import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    path('accounts/', include('django.contrib.auth.urls')), 
+    path('accounts/', views.user_account, name='user_account'), 
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('create_checking_account/', views.create_checking_account, name='create_checking_account'),
+    path('create_saving_account/', views.create_saving_account, name='create_saving_account'),
+    path('apply_loan_account/', views.apply_loan_account, name='apply_loan_account'),
+    path('create_checking_account/', views.create_checking_account, name='create_checking_account'),
+    path('checking_account_details/', views.checking_account_details, name='checking_account_details'),
+    path('saving_account_details/', views.saving_account_details, name='saving_account_details'),
+    path('loan_account_details/', views.loan_account_details, name='loan_account_details'),
 ]

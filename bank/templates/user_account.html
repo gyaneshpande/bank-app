@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-12">
+  <h2 class="text-3xl font-semibold mb-6">User Account</h2>
+  {% if has_checking_account %}
+    <a href="{% url 'checking_account_details' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Checking Account</a>
+  {% else %}
+    <a href="{% url 'create_checking_account' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Checking Account</a>
+  {% endif %}
+
+  {% if has_saving_account %}
+    <a href="{% url 'saving_account_details' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Saving Account</a>
+  {% else %}
+    <a href="{% url 'create_saving_account' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Saving Account</a>
+  {% endif %}
+
+  {% if has_loan_account %}
+    <a href="{% url 'loan_account_details' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Loan Account</a>
+  {% else %}
+    <a href="{% url 'apply_loan_account' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Loan Account</a>
+  {% endif %}
+</div>
+{% endblock %}
