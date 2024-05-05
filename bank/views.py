@@ -8,6 +8,17 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Account, StudentLoan, PersonalLoan, HomeLoan, Transaction
+from django.utils import timezone
+from django.core.cache import cache
+import random
+
+
+# Constants for OTP generation
+OTP_LENGTH = 6
+OTP_EXPIRY_SECONDS = 180  # 3 minutes
+def generate_otp():
+    """Generate a random OTP."""
+    return ''.join(random.choices('0123456789', k=OTP_LENGTH))
 
 def register(request):
     if request.method == 'POST':
@@ -47,7 +58,7 @@ def user_login(request):
     return render(request, 'registration/login.html', {'form': form})
 
 def home(request):
-    return render(request, 'base.html')
+    return render(request, 'home.html')
 
 def logout_view(request):
     logout(request)
@@ -281,6 +292,14 @@ def transfer_money(request):
         {'value': 'S', 'label': 'Savings'},
         {'value': 'L', 'label': 'Loan'},
     ]
+    form_data = {
+        'source_account_type': request.POST.get('source_account_type', ''),
+        'destination_account': request.POST.get('destination_account', ''),
+        'destination_account_type': request.POST.get('destination_account_type', ''),
+        'amount': request.POST.get('amount', ''),
+        'recepient_first_name': request.POST.get('recepient_first_name', ''),
+        'recepient_last_name': request.POST.get('recepient_last_name', ''),
+    }
     account_type_mapping = {account_type: get_full_account_type(account_type) for account_type in source_account_types}
     if request.method == 'POST':
         form = TransferForm(request.POST)
@@ -301,11 +320,32 @@ def transfer_money(request):
             
             if dest_account is None:
                 form.add_error('destination_account', "Destination account does not exist.")
-                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types})
+                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types, 'form_data': form_data})
             custom_user = CustomUser.objects.get(id=destination_account_number.cust_id_id)
             if custom_user.first_name.lower() != first_name or custom_user.last_name.lower() != last_name:
                 form.add_error('destination_account', "Recepient Name doesn't match")
-                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types})    
+                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types, 'form_data': form_data})    
+            # check otp
+            otp = request.POST.get('otp')
+            print(otp)
+            if otp is None:
+                otp_value = generate_otp()
+                cache_key = f"money_transfer_otp_{request.user.id}"
+                cache.set(cache_key, otp_value, OTP_EXPIRY_SECONDS)
+                messages.success(request, "Your otp is: "+otp_value+" It is valid for 180 seconds")
+                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types,'show_otp': True, 'otp_value': otp_value, 'form_data': form_data})
+            # print(otp)
+            # messages.error(request, 'Your otp is ' + otp)
+            # print(otp)
+            submitted_otp = request.POST.get('otp', '')
+            print("submitted otp is "+ submitted_otp)
+            cache_key = f"money_transfer_otp_{request.user.id}"
+            cached_otp = cache.get(cache_key)
+            # print("Cached opt is" + cached_otp)
+            if cached_otp is None or submitted_otp != cached_otp:
+                messages.error(request, 'Invalid OTP. Please try again.')
+                return redirect('transfer_money')  # Redirect back to transfer page
+            
             # Check if source account has sufficient balance
             if source_account.balance >= amount:
                 # Update account balances
@@ -333,6 +373,7 @@ def transfer_money(request):
         'form': form,
         'account_type_mapping': account_type_mapping,
         'account_types': account_types,
+        'form_data': form_data
     }
 
     return render(request, 'transfer_money.html', context)

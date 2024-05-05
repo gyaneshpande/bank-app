@@ -1,57 +1,53 @@
 {% extends 'base.html' %}
-
 {% block content %}
 <div class="container mx-auto py-12">
-  <div class="max-w-md mx-auto bg-white shadow-lg rounded-md overflow-hidden">
-    <div class="px-6 py-4">
-      <h2 class="text-3xl font-semibold mb-6 text-center">Transfer Money</h2>
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-md overflow-hidden">
+        <div class="px-6 py-4">
+            <h2 class="text-3xl font-semibold mb-6 text-center">Transfer Money</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="source_account_type" class="block text-sm font-medium text-gray-700">Source Account Type</label>
+                    <select name="source_account_type" id="source_account_type" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
+                        {% for account_type, account_type_full_form in account_type_mapping.items %}
+                        <option value="{{ account_type }}" {% if form_data.source_account_type == account_type %}selected{% endif %}>{{ account_type_full_form }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="destination_account" class="block text-sm font-medium text-gray-700">Destination Account</label>
+                    <input type="text" name="destination_account" id="destination_account" value="{{ form_data.destination_account }}" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="destination_account_type" class="block text-sm font-medium text-gray-700">Destination Account Type</label>
+                    <select name="destination_account_type" id="destination_account_type" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
+                        {% for account_type in account_types %}
+                        <option value="{{ account_type.value }}" {% if form_data.destination_account_type == account_type.value %}selected{% endif %}>{{ account_type.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
+                    <input type="text" name="amount" id="amount" value="{{ form_data.amount }}" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="recepient_first_name" class="block text-sm font-medium text-gray-700">Recipient First Name</label>
+                    <input type="text" name="recepient_first_name" id="recepient_first_name" value="{{ form_data.recepient_first_name }}" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="recepient_last_name" class="block text-sm font-medium text-gray-700">Recipient Last Name</label>
+                    <input type="text" name="recepient_last_name" id="recepient_last_name" value="{{ form_data.recepient_last_name }}" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
+                </div>
+                {% if show_otp %}
+                <div id="otp-container">
+                    <label for="otp" class="block text-sm font-medium text-gray-700 mt-4">OTP</label>
+                    <input type="text" name="otp" id="otp" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md" placeholder="Enter OTP">
+                </div>
+                {% endif %}
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Transfer</button>
+            </form>
 
-      <form method="post">
-        {% csrf_token %}
-
-        <div class="mb-4">
-            <label for="source_account_type" class="block text-sm font-medium text-gray-700">Source Account Type</label>
-            <select name="source_account_type" id="source_account_type" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
-                {% for account_type, account_type_full_form in account_type_mapping.items %}
-                    <option value="{{ account_type }}">{{ account_type_full_form }}</option>
-                {% endfor %}
-            </select>
-        </div>        
-        
-
-        <div class="mb-4">
-            <label for="destination_account" class="block text-sm font-medium text-gray-700">Destination Account</label>
-            <!-- Change to dropdown or leave as input field based on requirements -->
-            <input type="text" name="destination_account" id="destination_account" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
         </div>
-
-        <div class="mb-4">
-            <label for="destination_account_type" class="block text-sm font-medium text-gray-700">Destination Account Type</label>
-            <select name="destination_account_type" id="destination_account_type" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
-                {% for account_type in account_types %}
-                    <option value="{{ account_type.value }}">{{ account_type.label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="mb-4">
-          <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
-          <input type="text" name="amount" id="amount" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
-        </div>
-
-        <div class="mb-4">
-          <label for="recepient_first_name" class="block text-sm font-medium text-gray-700">Recipient First Name</label>
-          <input type="text" name="recepient_first_name" id="recepient_first_name" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
-        </div>
-
-        <div class="mb-4">
-          <label for="recepient_last_name" class="block text-sm font-medium text-gray-700">Recipient Last Name</label>
-          <input type="text" name="recepient_last_name" id="recepient_last_name" class="mt-1 p-2 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md">
-        </div>
-
-        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Transfer</button>
-      </form>
     </div>
-  </div>
 </div>
 {% endblock %}
