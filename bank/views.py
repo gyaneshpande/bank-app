@@ -2,12 +2,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from .models import CustomUser  # Import your custom user model
-from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm
+from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm
 from django.urls import reverse_lazy
 from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Account, StudentLoan, PersonalLoan, HomeLoan
+from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Account, StudentLoan, PersonalLoan, HomeLoan, Transaction
 
 def register(request):
     if request.method == 'POST':
@@ -238,4 +238,102 @@ def apply_loan_account(request):
     else:
         form = LoanAccountForm()
     return render(request, 'apply_loan.html', {'form': form})
+
+def get_full_account_type(abbreviated_type):
+            if abbreviated_type == 'C':
+                return 'Checking'
+            elif abbreviated_type == 'S':
+                return 'Savings'
+            elif abbreviated_type == 'L':
+                return 'Loan'
+            else:
+                return abbreviated_type  # Return the same value if not 'C', 'S', or 'L'
+
+def fetch_account(cust_id, account_type):
+    try:
+        account_id = Account.objects.get(cust_id_id=cust_id, account_type=account_type)
+        account = None
+        if account_type == 'C':
+            account = CheckingAccount.objects.get(account_id=account_id.id)
+        elif account_type == 'S':
+            account = SavingAccount.objects.get(account_id=account_id.id)
+        elif account_type == 'L':
+            account = LoanAccount.objects.get(account_id=account_id.id)
+        return account
+    except Exception as e:
+        print(f"Error fetching account: {e}")
+        return None
+
+    
+def transfer_money(request):
+    form = TransferForm()  # Instantiate form at the beginning of the function
+    user = request.user
+
+    # Get the user's accounts
+    source_accounts = Account.objects.filter(cust_id_id=user)
+
+    # Get unique account types
+    source_account_types = source_accounts.values_list('account_type', flat=True).distinct()
+    source_account_types = [account_type for account_type in source_account_types if account_type != 'L']
+    # print(source_accounts)
+    account_types = [
+        {'value': 'C', 'label': 'Checking'},
+        {'value': 'S', 'label': 'Savings'},
+        {'value': 'L', 'label': 'Loan'},
+    ]
+    account_type_mapping = {account_type: get_full_account_type(account_type) for account_type in source_account_types}
+    if request.method == 'POST':
+        form = TransferForm(request.POST)
+        if form.is_valid():
+            transfer = form.save(commit=False)
+            source_account_type = transfer.source_account_type
+            source_account = fetch_account(request.user, source_account_type)
+            transfer.source_account_id = request.user.id
+            destination_account_number = transfer.destination_account
+            amount = transfer.amount
+            first_name = transfer.recepient_first_name
+            last_name = transfer.recepient_last_name
+            # Get source and destination account types
+            destination_account_type = transfer.destination_account_type
+            # print(type(destination_account_number))
+            # destination_account = CustomUser.objects.get(destination_account_number)
+            dest_account = fetch_account(destination_account_number.cust_id_id, destination_account_type)
+            
+            if dest_account is None:
+                form.add_error('destination_account', "Destination account does not exist.")
+                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types})
+            custom_user = CustomUser.objects.get(id=destination_account_number.cust_id_id)
+            if custom_user.first_name.lower() != first_name.lower() or custom_user.last_name.lower() != last_name.lower():
+                form.add_error('destination_account', "Recepient Name doesn't match")
+                return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types})    
+            # Check if source account has sufficient balance
+            if source_account.balance >= amount:
+                # Update account balances
+                source_account.balance -= amount
+                dest_account.balance += amount
+                source_account.save()
+                dest_account.save()
+                
+                # Record the transaction
+                transfer.source_account_type = source_account_type
+                transfer.destination_account_type = destination_account_type
+                transfer.save()
+                messages.success(request, 'Transaction completed successfully!')
+                return redirect('user_account')  # Redirect to accounts page
+            else:
+                # Insufficient balance
+                form.add_error(None, "Insufficient balance.")
+    else:
+        # Assuming you have a logged-in user
+        
+
+        print(user)
+
+    context = {
+        'form': form,
+        'account_type_mapping': account_type_mapping,
+        'account_types': account_types,
+    }
+
+    return render(request, 'transfer_money.html', context)
 

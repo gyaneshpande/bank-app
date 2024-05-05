@@ -225,3 +225,13 @@ def create_customer_profile(sender, instance, created, **kwargs):
             zipcode=instance.zipcode
         )
 
+class Transaction(models.Model):
+    source_account = models.ForeignKey(Account, related_name='source_transactions', on_delete=models.CASCADE)
+    destination_account = models.ForeignKey(Account, related_name='destination_transactions', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    source_account_type = models.CharField(max_length=1, choices=Account.ACCOUNT_TYPE_CHOICES)
+    destination_account_type = models.CharField(max_length=1, choices=Account.ACCOUNT_TYPE_CHOICES)
+    recepient_first_name = models.CharField(max_length=30, null=False)
+    recepient_last_name = models.CharField(max_length=30, null=False)
+

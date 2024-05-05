@@ -5,7 +5,7 @@ from .models import CustomUser
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import UserAttributeSimilarityValidator
-from .models import CheckingAccount, SavingAccount, LoanAccount
+from .models import CheckingAccount, SavingAccount, LoanAccount, Transaction, Account
 
 class RegistrationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
@@ -58,3 +58,8 @@ class LoanAccountForm(forms.ModelForm):
                 self.fields['house_built_year'] = forms.CharField(label='Field for Home Loan')
             elif loan_type == 'SL':
                 self.fields['field_for_student_loan'] = forms.CharField(label='Field for Student Loan')
+                
+class TransferForm(forms.ModelForm):
+    class Meta:
+        model = Transaction
+        fields = ['source_account_type', 'destination_account', 'destination_account_type', 'amount', 'recepient_first_name', 'recepient_last_name']

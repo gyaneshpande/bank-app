@@ -32,4 +32,5 @@ urlpatterns = [
     path('checking_account_details/', views.checking_account_details, name='checking_account_details'),
     path('saving_account_details/', views.saving_account_details, name='saving_account_details'),
     path('loan_account_details/', views.loan_account_details, name='loan_account_details'),
+    path('transfer-money/', views.transfer_money, name='transfer_money'),
 ]
