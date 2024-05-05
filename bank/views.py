@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import PasswordResetForm, PasswordChangeForm
 from .models import CustomUser  # Import your custom user model
-from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm
+from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm, AddMoneyForm
 from django.urls import reverse_lazy
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib import messages
@@ -17,6 +17,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
 from datetime import datetime
 from django.db import transaction
+from decimal import Decimal
 
 # Constants for OTP generation
 OTP_LENGTH = 6
@@ -433,4 +434,29 @@ def transaction_history(request):
     print(user)
     transactions = Transaction.objects.filter(source_account_id=user.id).order_by('-timestamp')
     return render(request, 'transaction_history.html', {'transactions': transactions})
+
+def add_money_to_account(request, account_type):
+    if request.method == 'POST':
+        amount = Decimal(request.POST.get('amount'))
+        print(request.user.id)
+        if amount < 0:
+            messages.error(request, "Value cannot be less than 0")
+            return redirect('user_account')
+        account = Account.objects.get(cust_id=request.user, account_type=account_type)
+        if account_type == 'C':
+            checking_account = CheckingAccount.objects.get(account_id=account.id)
+            checking_account.balance += amount
+            checking_account.save()
+        elif account_type == 'S':
+            saving_account = SavingAccount.objects.get(account_id=account.id)
+            saving_account.balance += amount
+            saving_account.save()
+        # Add more conditions for other account types if needed
+
+        # Redirect to account details page after adding money
+        messages.success(request, "Amount added successfully!")
+        return redirect('user_account')  # Update with the correct URL name for account details page
+    else:
+        # Redirect to the homepage if the request method is not POST
+        return redirect('home')  # Update with the correct URL name for the homepage
 

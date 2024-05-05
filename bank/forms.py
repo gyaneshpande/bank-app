@@ -76,3 +76,6 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         super().__init__(*args, **kwargs)
         # Exclude the old password field
         del self.fields['old_password']
+    
+class AddMoneyForm(forms.Form):
+    amount = forms.DecimalField(label='Amount', max_digits=10, decimal_places=2)

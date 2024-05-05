@@ -38,4 +38,5 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('password-change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
     path('password-change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
+    path('add-money/<str:account_type>/', views.add_money_to_account, name='add_money_to_account'),
 ]
