@@ -117,8 +117,8 @@ class Account(models.Model):
             models.UniqueConstraint(fields=['cust_id', 'account_type'], name='unique_customer_account_type')
         ]
     
-    def __str__(self):
-        return f'Account id {self.id}, Account type {self.account_type}'
+    # def __str__(self):
+    #     return f'Account id {self.id}, Account type {self.account_type}'
 
 class SavingAccount(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)

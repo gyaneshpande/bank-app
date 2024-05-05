@@ -291,8 +291,8 @@ def transfer_money(request):
             transfer.source_account_id = request.user.id
             destination_account_number = transfer.destination_account
             amount = transfer.amount
-            first_name = transfer.recepient_first_name
-            last_name = transfer.recepient_last_name
+            first_name = transfer.recepient_first_name.lower()
+            last_name = transfer.recepient_last_name.lower()
             # Get source and destination account types
             destination_account_type = transfer.destination_account_type
             # print(type(destination_account_number))
@@ -303,7 +303,7 @@ def transfer_money(request):
                 form.add_error('destination_account', "Destination account does not exist.")
                 return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types})
             custom_user = CustomUser.objects.get(id=destination_account_number.cust_id_id)
-            if custom_user.first_name.lower() != first_name.lower() or custom_user.last_name.lower() != last_name.lower():
+            if custom_user.first_name.lower() != first_name or custom_user.last_name.lower() != last_name:
                 form.add_error('destination_account', "Recepient Name doesn't match")
                 return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types})    
             # Check if source account has sufficient balance
@@ -336,4 +336,10 @@ def transfer_money(request):
     }
 
     return render(request, 'transfer_money.html', context)
+
+def transaction_history(request):
+    user = request.user
+    print(user)
+    transactions = Transaction.objects.filter(source_account_id=user.id).order_by('-timestamp')
+    return render(request, 'transaction_history.html', {'transactions': transactions})
 
