@@ -31,6 +31,9 @@ DEBUG = True
 APPEND_SLASH = True
 
 ALLOWED_HOSTS = []
+# settings.py
+
+LOGIN_REDIRECT_URL = '/accounts/'  # Replace '/accounts/' with the actual URL of your accounts page
 
 
 # Application definition

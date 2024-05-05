@@ -6,58 +6,90 @@
     <title>{% block title %}My Site{% endblock %}</title>
     <!-- Add Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .content {
+            flex: 1;
+        }
+    </style>
 </head>
+{% load static %}
+
 <body class="bg-gray-100">
-    <header class="bg-blue-500 py-4">
-        <nav class="container mx-auto flex justify-between items-center">
-            <a href="{% url 'home' %}" class="text-white font-semibold text-lg">My Site</a>
-            <ul class="flex space-x-4">
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}" class="text-white">Logout</a></li>
-                {% else %}
-                    <li><a href="{% url 'login' %}" class="text-white">Login</a></li>
-                    <li><a href="{% url 'register' %}" class="text-white">Register</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </header>
+    <div class="wrapper">
+        <header class="bg-blue-500 py-4">
+            <div class="container mx-auto flex items-center">
+                <!-- Bank Logo -->
+                <img src="{% static 'images/bank.png' %}" alt="Bank Logo" class="h-12">
+                
+                <!-- ACG Bank Text -->
+                <a href="{% url 'home' %}" class="text-white font-semibold text-lg ml-2">ACG Bank</a>
+        
+                <!-- Navigation Links -->
+                <nav class="ml-auto">
+                    <ul class="flex space-x-4">
+                        {% if user.is_authenticated %}
 
-    {% if form.errors %}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-      <strong class="font-bold">Error:</strong>
-      <ul class="list-disc list-inside">
-        {% for field, errors in form.errors.items %}
-          {% for error in errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
-
-    <!-- Message display area -->
-    <div class="container mx-auto mt-4">
-        {% for message in messages %}
-            <div class="rounded-md p-4 mb-4
-                        {% if message.tags == 'success' %}
-                            bg-green-100 text-green-800
-                        {% elif message.tags == 'error' %}
-                            bg-red-100 text-red-800
+                        <li><a href="{% url 'user_account' %}" class="text-white">Account</a></li>
+                            <li><a href="{% url 'logout' %}" class="text-white">Logout</a></li>
+                        {% else %}
+                            <li><a href="{% url 'login' %}" class="text-white">Login</a></li>
+                            <li><a href="{% url 'register' %}" class="text-white">Register</a></li>
                         {% endif %}
-                        ">
-                {{ message }}
+                    </ul>
+                </nav>
             </div>
-        {% endfor %}
-    </div>
-    
-    <main class="container mx-auto my-4">
-        {% block content %}
-        {% endblock %}
-    </main>
+        </header>
+        
+        
+        
 
-    <footer class="bg-gray-900 py-4 text-white text-center">
-        <p>&copy; My Site</p>
-    </footer>
+        {% if form.errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <ul class="list-disc list-inside">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Message display area -->
+        <div class="container mx-auto mt-4">
+            {% for message in messages %}
+                <div class="rounded-md p-4 mb-4
+                            {% if message.tags == 'success' %}
+                                bg-green-100 text-green-800
+                            {% elif message.tags == 'error' %}
+                                bg-red-100 text-red-800
+                            {% endif %}
+                            ">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <main class="container mx-auto my-4 content">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <footer class="bg-gray-900 py-4 text-white text-center">
+            <p>&copy; My Site</p>
+        </footer>
+    </div>
 
     <!-- Add your JavaScript files here -->
 </body>

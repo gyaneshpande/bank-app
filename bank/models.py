@@ -132,7 +132,7 @@ class SavingAccount(models.Model):
 class CheckingAccount(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
     account_no = models.AutoField(primary_key=True)
-    service_charge = models.DecimalField(max_digits=4, decimal_places=2, null=False)
+    service_charge = models.DecimalField(max_digits=6, decimal_places=2, null=False)
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

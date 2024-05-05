@@ -1,17 +1,22 @@
 # views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.forms import PasswordResetForm, PasswordChangeForm
 from .models import CustomUser  # Import your custom user model
 from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm
 from django.urls import reverse_lazy
-from django.contrib.auth import logout
+from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Account, StudentLoan, PersonalLoan, HomeLoan, Transaction
 from django.utils import timezone
 from django.core.cache import cache
 import random
-
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
+from datetime import datetime
+from django.db import transaction
 
 # Constants for OTP generation
 OTP_LENGTH = 6
@@ -56,6 +61,46 @@ def user_login(request):
     else:
         form = LoginForm()
     return render(request, 'registration/login.html', {'form': form})
+
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user = CustomUser.objects.filter(email=email).first()
+        if user:
+            otp = request.POST.get('otp')
+            if otp is None:
+                otp_value = generate_otp()
+                cache_key = f"password_reset_otp_{request.user.id}"
+                cache.set(cache_key, otp_value, OTP_EXPIRY_SECONDS)
+                messages.success(request, "Your otp is: "+otp_value+" It is valid for 180 seconds")
+                return render(request, 'registration/forgot_password.html', {'show_otp': True, 'otp_value': otp_value})
+            submitted_otp = request.POST.get('otp', '')
+            print("submitted otp is "+ submitted_otp)
+            cache_key = f"password_reset_otp_{request.user.id}"
+            cached_otp = cache.get(cache_key)
+            # print("Cached opt is" + cached_otp)
+            if cached_otp is None or submitted_otp != cached_otp:
+                messages.error(request, 'Invalid OTP. Please try again.')
+                return redirect('forgot_password')  # Redirect back to transfer page
+
+            if request.method == 'POST':
+                form = PasswordChangeForm(user, request.POST)
+                if form.is_valid():
+                    user = form.save()
+                    update_session_auth_hash(request, user)  # Important to update the session
+                    messages.success(request, 'Your password has been changed successfully.')
+                    return redirect('login')
+            else:
+                form = PasswordChangeForm(request.user)
+            return render(request, 'registration/password_change_form.html', {'form': form})
+        else:
+            messages.error(request, 'Email address not found.')
+            return redirect('forgot_password')
+    else:
+        return render(request, 'registration/forgot_password.html')
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = 'password_change_form.html'
 
 def home(request):
     return render(request, 'home.html')
@@ -193,8 +238,19 @@ def loan_account_details(request):
     loan_account = LoanAccount.objects.get(account_id = account.id)
     return render(request, 'account_details.html', {'account': account, 'loan_account': loan_account})
 
+@transaction.atomic
 def apply_loan_account(request):
     if request.method == 'POST':
+        # loan_type = request.POST.get('loan_type')
+        # print(loan_type)
+        # if loan_type == 'SL':  # Student Loan
+        #     form1 = LoanAccountForm(request.POST)
+        # elif loan_type == 'PL':  # Personal Loan
+        #     form1 = PersonalLoanForm(request.POST)
+        # elif loan_type == 'HL':  # Home Loan
+        #     form1 = HomeLoanForm(request.POST)
+        # else:
+        #     form1 = None
         form = LoanAccountForm(request.POST)
         print(form)
         account, _ = Account.objects.get_or_create(
@@ -208,15 +264,6 @@ def apply_loan_account(request):
         if form.is_valid():
             loan_type = form.cleaned_data['loan_type']
             form_data = form.save(commit=False)
-
-            # Create an entry in the accounts table with account_type 'L'
-            # account = Account.objects.create(
-            #     cust_id=request.user,
-            #     account_type='L',
-            #     city=request.user.city,
-            #     state=request.user.state,
-            #     zipcode=request.user.zipcode
-            # )
 
             # Create an entry in the loan_account table linked to the created account
             loan_amount = form.cleaned_data['loan_amount']
@@ -239,10 +286,13 @@ def apply_loan_account(request):
                 student_loan = StudentLoan.objects.create(account=account)
                 # Perform additional actions specific to student loan if needed
             elif loan_type == 'PL':  # Personal Loan
-                personal_loan = PersonalLoan.objects.create(account=account, **form_data.__dict__)
+                loan_purpose = form.cleaned_data['loan_purpose']
+                personal_loan = PersonalLoan.objects.create(account=account, loan_purpose=loan_purpose)
                 # Perform additional actions specific to personal loan if needed
             elif loan_type == 'HL':  # Home Loan
-                home_loan = HomeLoan.objects.create(account=account, **form_data.__dict__)
+                house_built_year = int(form.cleaned_data['house_built_year'])
+                year_datetime = datetime(year=house_built_year, month=1, day=1)
+                home_loan = HomeLoan.objects.create(account=account, house_built_year=year_datetime)
                 # Perform additional actions specific to home loan if needed
 
             return redirect('user_account')  # Redirect to user account page after creating the account
@@ -275,7 +325,7 @@ def fetch_account(cust_id, account_type):
         print(f"Error fetching account: {e}")
         return None
 
-    
+@login_required
 def transfer_money(request):
     form = TransferForm()  # Instantiate form at the beginning of the function
     user = request.user

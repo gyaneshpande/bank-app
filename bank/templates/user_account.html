@@ -1,26 +1,69 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 <div class="container mx-auto py-12">
-  <h2 class="text-3xl font-semibold mb-6">User Account</h2>
-  {% if has_checking_account %}
-    <a href="{% url 'checking_account_details' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Checking Account</a>
-  {% else %}
-    <a href="{% url 'create_checking_account' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Checking Account</a>
-  {% endif %}
-
-  {% if has_saving_account %}
-    <a href="{% url 'saving_account_details' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Saving Account</a>
-  {% else %}
-    <a href="{% url 'create_saving_account' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Saving Account</a>
-  {% endif %}
-
-  {% if has_loan_account %}
-    <a href="{% url 'loan_account_details' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Loan Account</a>
-  {% else %}
-    <a href="{% url 'apply_loan_account' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Loan Account</a>
-  {% endif %}
-  <a href="{% url 'transfer_money' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Transfer Money</a>
-  <a href="{% url 'transaction_history' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">View Transaction History</a>
-</div>
+    <h2 class="text-3xl font-semibold mb-6">User Account</h2>
+  
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Checking Account -->
+      {% if has_checking_account %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h3 class="text-xl font-semibold mb-2">Checking Account</h3>
+          <p>Your checking account details.</p>
+          <a href="{% url 'checking_account_details' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Go to Checking Account</a>
+        </div>
+      {% else %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h3 class="text-xl font-semibold mb-2">Create Checking Account</h3>
+          <p>Create a new checking account.</p>
+          <a href="{% url 'create_checking_account' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Create Checking Account</a>
+        </div>
+      {% endif %}
+  
+      <!-- Saving Account -->
+      {% if has_saving_account %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h3 class="text-xl font-semibold mb-2">Saving Account</h3>
+          <p>Your saving account details.</p>
+          <a href="{% url 'saving_account_details' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Go to Saving Account</a>
+        </div>
+      {% else %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h3 class="text-xl font-semibold mb-2">Create Saving Account</h3>
+          <p>Create a new saving account.</p>
+          <a href="{% url 'create_saving_account' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Create Saving Account</a>
+        </div>
+      {% endif %}
+  
+      <!-- Loan Account -->
+      {% if has_loan_account %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h3 class="text-xl font-semibold mb-2">Loan Account</h3>
+          <p>Your loan account details.</p>
+          <a href="{% url 'loan_account_details' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Go to Loan Account</a>
+        </div>
+      {% else %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h3 class="text-xl font-semibold mb-2">Apply for Loan Account</h3>
+          <p>Apply for a new loan account.</p>
+          <a href="{% url 'apply_loan_account' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Apply for Loan Account</a>
+        </div>
+      {% endif %}
+      
+      <!-- Transfer Money -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+        <h3 class="text-xl font-semibold mb-2">Transfer Money</h3>
+        <p>Transfer money between accounts.</p>
+        <a href="{% url 'transfer_money' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Transfer Money</a>
+      </div>
+      
+      <!-- Transaction History -->
+      <div class="bg-white rounded-lg overflow-hidden shadow-lg p-6 hover:shadow-2xl transition-shadow duration-300">
+        <h3 class="text-xl font-semibold mb-2">Transaction History</h3>
+        <p>View your transaction history.</p>
+        <a href="{% url 'transaction_history' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-2">View Transaction History</a>
+      </div>
+    </div>
+  </div>
+  
 {% endblock %}

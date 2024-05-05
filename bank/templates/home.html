@@ -2,13 +2,96 @@
 
 {% block content %}
 <div class="container mx-auto py-12">
-  <h2 class="text-3xl font-semibold mb-6">Welcome to Our Banking System</h2>
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <!-- Header -->
+        {% comment %} <header class="bg-blue-500 py-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-white font-semibold text-lg">ACG Bank</h1>
+                <nav>
+                    <ul class="flex space-x-4">
+                        <li><a href="#about" class="text-white">About</a></li>
+                        <li><a href="#services" class="text-white">Services</a></li>
+                        <li><a href="#contact" class="text-white">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header> {% endcomment %}
 
-  <p class="mb-6">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vestibulum purus id felis ultrices, eu dapibus dui efficitur. Mauris sed vestibulum leo, in condimentum urna.</p>
+        <!-- Hero Section -->
+        {% comment %} <section class="py-12 bg-blue-500 text-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-semibold mb-4">Welcome to ACG Bank</h2>
+                <p class="text-lg mb-8">Your trusted partner in financial services.</p>
+                <div class="flex space-x-4">
+                    <a href="{% url 'login' %}" class="bg-white text-blue-500 hover:bg-blue-700 font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline">Login</a>
+                    <a href="{% url 'register' %}" class="bg-white text-green-500 hover:bg-green-700 font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline">Register</a>
+                </div>
+            </div>
+        </section> {% endcomment %}
 
-  <div class="flex space-x-4">
-    <a href="{% url 'login' %}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Login</a>
-    <a href="{% url 'register' %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Register</a>
-  </div>
+        <!-- About Section -->
+        <section id="about" class="py-12 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-semibold mb-4">About Us</h2>
+                <p class="mb-8">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vestibulum purus id felis ultrices, eu dapibus dui efficitur. Mauris sed vestibulum leo, in condimentum urna.</p>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="py-12 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-semibold mb-4 text-center">Our Services</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2 text-blue-500">Personal Banking</h3>
+                            <p>Create Checking and Savings accounts with ease.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2 text-blue-500">Loan Services</h3>
+                            <p>Apply for different types of loans.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-2 text-blue-500">Money Transfer Services</h3>
+                            <p>Tranfer Money to different accounts with ease.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-12 bg-gray-100">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-semibold mb-4">Contact Us</h2>
+                <p class="mb-8">Have questions? Reach out to us!</p>
+                <form>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                            <input type="text" id="name" name="name" class="w-full border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="email" name="email" class="w-full border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                        <textarea id="message" name="message" rows="4" class="w-full border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    <div class="mt-6">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </div>
 </div>
 {% endblock %}
