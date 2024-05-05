@@ -24,7 +24,7 @@
           <p class="text-lg font-semibold">Balance:</p>
           <p class="text-lg">{{ saving_account.balance }}</p>
         </div>
-      {% elif account.account_type == 'L' %}
+        {% elif account.account_type == 'L' %}
         <h2 class="text-3xl font-semibold mb-4 text-center">Loan Account Details</h2>
         <div class="mb-4">
           <p class="text-lg font-semibold">Loan Type:</p>
@@ -46,11 +46,19 @@
           <p class="text-lg font-semibold">Loan Payment:</p>
           <p class="text-lg">${{ loan_account.loan_payment }}</p>
         </div>
-      {% endif %}
       <div class="mt-6">
         <p class="text-lg font-semibold">Date Opened:</p>
         <p class="text-lg">{{ account.created_at }}</p>
       </div>
+
+      {% if loan_account.loan_type == 'HL' %}
+          {% if insurance_exists %}
+            <a href="{% url 'view_insurance_information' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">View Insurance Information</a>
+          {% else %}
+            <a href="{% url 'add_insurance_information' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Add Insurance Information</a>
+          {% endif %}
+        {% endif %}
+      {% endif %}
       
       {% if account.account_type == 'C' or account.account_type == 'S' %}
       <div class="mt-6">

@@ -39,4 +39,6 @@ urlpatterns = [
     path('password-change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
     path('password-change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     path('add-money/<str:account_type>/', views.add_money_to_account, name='add_money_to_account'),
+    path('add_insurance_information/', views.add_insurance_information, name='add_insurance_information'),
+    path('view_insurance_information/', views.view_insurance_information, name='view_insurance_information'),
 ]

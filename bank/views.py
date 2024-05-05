@@ -4,12 +4,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.forms import PasswordResetForm, PasswordChangeForm
 from .models import CustomUser  # Import your custom user model
-from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm, AddMoneyForm
+from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm, AddMoneyForm, InsuranceForm
 from django.urls import reverse_lazy
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Account, StudentLoan, PersonalLoan, HomeLoan, Transaction
+from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Account, StudentLoan, PersonalLoan, HomeLoan, Transaction, HomeInsurance, Insurance
 from django.utils import timezone
 from django.core.cache import cache
 import random
@@ -237,7 +237,9 @@ def loan_account_details(request):
     print(request.user.id)
     account = Account.objects.get(cust_id_id=request.user.id, account_type='L')
     loan_account = LoanAccount.objects.get(account_id = account.id)
-    return render(request, 'account_details.html', {'account': account, 'loan_account': loan_account})
+    home_loan_account = HomeLoan.objects.get(account_id = account.id)
+    has_insurance = HomeInsurance.objects.filter(home_loan_id_id=home_loan_account.home_loan_id).exists()
+    return render(request, 'account_details.html', {'account': account, 'loan_account': loan_account, 'insurance_exists': has_insurance})
 
 @transaction.atomic
 def apply_loan_account(request):
@@ -459,4 +461,36 @@ def add_money_to_account(request, account_type):
     else:
         # Redirect to the homepage if the request method is not POST
         return redirect('home')  # Update with the correct URL name for the homepage
+    
+def add_insurance_information(request):
+    if request.method == 'POST':
+        form = InsuranceForm(request.POST)
+        if form.is_valid():
+            # Process the form data and save to database
+            # For example:
+            print(request.user.id)
+            
+            account = Account.objects.get(cust_id=request.user, account_type='L')
+            home_loan = HomeLoan.objects.get(account_id=account.id)
+            yearly_ins_prem = form.cleaned_data['yearly_ins_prem']
+            ins_company = form.save()
+            HomeInsurance.objects.create(yearly_ins_prem=yearly_ins_prem, home_loan_id_id=home_loan.home_loan_id, company_id_id=ins_company.company_id)
+            # Save to database here
+
+            # Redirect to a success page or back to account details page
+            return redirect('view_insurance_information')  # Replace with your URL name for account details page
+    else:
+        form = InsuranceForm()
+    
+    return render(request, 'add_insurance_information.html', {'form': form})
+
+def view_insurance_information(request):
+    # Retrieve insurance information from the database
+    account = Account.objects.get(cust_id=request.user, account_type='L')
+    home_loan = HomeLoan.objects.get(account_id=account.id)
+    insurance_info = HomeInsurance.objects.get(home_loan_id_id=home_loan.home_loan_id)
+    company_info = Insurance.objects.get(company_id=insurance_info.company_id_id)
+
+    # Render the template with the insurance information
+    return render(request, 'view_insurance_information.html', {'insurance_info': insurance_info, 'company_info': company_info, 'home_loan': home_loan, 'account': account})
 
