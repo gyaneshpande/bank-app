@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 from .models import CustomUser
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
@@ -103,29 +103,24 @@ class LoanAccountForm(forms.ModelForm):
                 self.fields['loan_purpose'] = forms.CharField(label='Purpose for Personal Loan')
             elif loan_type == 'HL':
                 self.fields['house_built_year'] = forms.CharField(label='House built year')
-            elif loan_type == 'SL':
-                self.fields['field_for_student_loan'] = forms.CharField(label='Field for Student Loan')
+            # elif loan_type == 'SL':
+            #     self.fields['field_for_student_loan'] = forms.CharField(label='Field for Student Loan')
                 
-# class PersonalLoanForm(forms.ModelForm):
-#     class Meta:
-#         model = PersonalLoan
-#         fields = ['loan_purpose']  # Add fields specific to Personal Loan
-
-# class HomeLoanForm(forms.ModelForm):
-#     class Meta:
-#         model = HomeLoan
-#         fields = ['house_built_year',]  # Add fields specific to Home Loan
-
-# class StudentLoanForm(forms.ModelForm):
-#     class Meta:
-#         model = StudentLoan
-        # fields = ['']  # Add fields specific to Student Loan
                 
 class TransferForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['source_account_type', 'destination_account', 'destination_account_type', 'amount', 'recepient_first_name', 'recepient_last_name']
+        
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(label='Email', max_length=254, widget=forms.EmailInput(attrs={'autocomplete': 'email', 'class': 'form-control'}))
 
+class CustomSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].widget = forms.PasswordInput(attrs={'readonly': False})
+        self.fields['new_password2'].widget = forms.PasswordInput(attrs={'readonly': False})
+        
 class CustomPasswordChangeForm(PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

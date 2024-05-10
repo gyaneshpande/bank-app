@@ -2,9 +2,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-from django.contrib.auth.forms import PasswordResetForm, PasswordChangeForm
+from django.contrib.auth.forms import PasswordResetForm, PasswordChangeForm, SetPasswordForm
 from .models import CustomUser  # Import your custom user model
-from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm, AddMoneyForm, InsuranceForm
+from .forms import RegistrationForm, LoginForm, CheckingAccountForm, SavingAccountForm, LoanAccountForm, TransferForm, AddMoneyForm, InsuranceForm, CustomPasswordResetForm, PasswordResetForm, CustomSetPasswordForm
 from django.urls import reverse_lazy
 from django.contrib.auth import logout, update_session_auth_hash
 from django.contrib import messages
@@ -13,11 +13,16 @@ from .models import Customer, CheckingAccount, SavingAccount, LoanAccount, Accou
 from django.utils import timezone
 from django.core.cache import cache
 import random
-from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.views import PasswordChangeView, PasswordResetView
 from django.urls import reverse_lazy
 from datetime import datetime
 from django.db import transaction
 from decimal import Decimal
+import matplotlib.pyplot as plt
+import io
+import urllib, base64
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count
 
 # Constants for OTP generation
 OTP_LENGTH = 6
@@ -63,43 +68,55 @@ def user_login(request):
         form = LoginForm()
     return render(request, 'registration/login.html', {'form': form})
 
+
 def forgot_password(request):
+    email = None
     if request.method == 'POST':
         email = request.POST.get('email')
         user = CustomUser.objects.filter(email=email).first()
-        if user:
-            otp = request.POST.get('otp')
-            if otp is None:
-                otp_value = generate_otp()
-                cache_key = f"password_reset_otp_{request.user.id}"
-                cache.set(cache_key, otp_value, OTP_EXPIRY_SECONDS)
-                messages.success(request, "Your otp is: "+otp_value+" It is valid for 180 seconds")
-                return render(request, 'registration/forgot_password.html', {'show_otp': True, 'otp_value': otp_value})
-            submitted_otp = request.POST.get('otp', '')
-            print("submitted otp is "+ submitted_otp)
-            cache_key = f"password_reset_otp_{request.user.id}"
-            cached_otp = cache.get(cache_key)
-            # print("Cached opt is" + cached_otp)
-            if cached_otp is None or submitted_otp != cached_otp:
-                messages.error(request, 'Invalid OTP. Please try again.')
-                return redirect('forgot_password')  # Redirect back to transfer page
+        if not user:
+            messages.error(request, 'Email not found. Please enter a valid email.')
+            return render(request, 'registration/forgot_password.html', {'email': email})
 
-            if request.method == 'POST':
-                form = PasswordChangeForm(user, request.POST)
-                if form.is_valid():
-                    user = form.save()
-                    update_session_auth_hash(request, user)  # Important to update the session
-                    messages.success(request, 'Your password has been changed successfully.')
-                    return redirect('login')
-            else:
-                form = PasswordChangeForm(request.user)
-            return render(request, 'registration/password_change_form.html', {'form': form})
-        else:
-            messages.error(request, 'Email address not found.')
+        otp = request.POST.get('otp')
+        if otp is None:
+            otp_value = generate_otp()
+            cache_key = f"password_reset_otp_{user.id}"
+            cache.set(cache_key, otp_value, OTP_EXPIRY_SECONDS)
+            messages.success(request, f"Your OTP is: {otp_value}. It is valid for 180 seconds.")
+            return render(request, 'registration/forgot_password.html', {'show_otp': True, 'otp_value': otp_value, 'email': email})
+
+        submitted_otp = request.POST.get('otp', '')
+        cache_key = f"password_reset_otp_{user.id}"
+        cached_otp = cache.get(cache_key)
+        if cached_otp is None or submitted_otp != cached_otp:
+            messages.error(request, 'Invalid OTP. Please try again.')
             return redirect('forgot_password')
-    else:
-        return render(request, 'registration/forgot_password.html')
 
+        # Redirect to the password reset form
+        return redirect('reset_password', user_id=user.id)  # Create this URL pattern
+
+    else:
+        return render(request, 'registration/forgot_password.html', {'email': email})
+
+
+
+def reset_password(request, user_id):
+    user = CustomUser.objects.filter(id=user_id).first()
+    if user:
+        if request.method == 'POST':
+            form = CustomSetPasswordForm(user, request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)  # Important!
+                messages.success(request, 'Your password has been changed successfully.')
+                return redirect('login')
+        else:
+            form = CustomSetPasswordForm(user)
+        return render(request, 'registration/reset_password.html', {'form': form})
+    else:
+        messages.error(request, 'Invalid user ID.')
+        return redirect('forgot_password')
 class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'password_change_form.html'
 
@@ -150,7 +167,6 @@ def create_checking_account(request):
         form = CheckingAccountForm(request.POST)
         if form.is_valid():
             # Get or create the Account object for the logged-in user with account_type 'C'
-            # customer = CustomUser.objects.get(cust_id=request.user.id)
             user = CustomUser.objects.get(id=request.user.id)
             print(user)
             # street = user.street
@@ -169,6 +185,7 @@ def create_checking_account(request):
     else:
         form = CheckingAccountForm()
     return render(request, 'create_account.html', {
+        'account_type': 'Checkings',
         'form': form,
         'account_exists': account_exists,
         'account': account if account_exists else None,
@@ -207,6 +224,7 @@ def create_saving_account(request):
     else:
         form = SavingAccountForm()
     return render(request, 'create_account.html', {
+        'account_type': 'Savings',
         'form': form,
         'account_exists': account_exists,
         'account': account if account_exists else None,
@@ -237,23 +255,18 @@ def loan_account_details(request):
     print(request.user.id)
     account = Account.objects.get(cust_id_id=request.user.id, account_type='L')
     loan_account = LoanAccount.objects.get(account_id = account.id)
-    home_loan_account = HomeLoan.objects.get(account_id = account.id)
-    has_insurance = HomeInsurance.objects.filter(home_loan_id_id=home_loan_account.home_loan_id).exists()
+    has_insurance = False
+    if loan_account.loan_type == 'HL':
+        home_loan_account = HomeLoan.objects.get(account_id = account.id)
+        has_insurance = HomeInsurance.objects.filter(home_loan_id_id=home_loan_account.home_loan_id).exists()
+    elif loan_account.loan_type == 'SL':
+        stu_loan = StudentLoan.objects.get(account_id = account.id)
+        # get student university info
     return render(request, 'account_details.html', {'account': account, 'loan_account': loan_account, 'insurance_exists': has_insurance})
 
 @transaction.atomic
 def apply_loan_account(request):
     if request.method == 'POST':
-        # loan_type = request.POST.get('loan_type')
-        # print(loan_type)
-        # if loan_type == 'SL':  # Student Loan
-        #     form1 = LoanAccountForm(request.POST)
-        # elif loan_type == 'PL':  # Personal Loan
-        #     form1 = PersonalLoanForm(request.POST)
-        # elif loan_type == 'HL':  # Home Loan
-        #     form1 = HomeLoanForm(request.POST)
-        # else:
-        #     form1 = None
         form = LoanAccountForm(request.POST)
         print(form)
         account, _ = Account.objects.get_or_create(
@@ -329,17 +342,16 @@ def fetch_account(cust_id, account_type):
         return None
 
 @login_required
+@transaction.atomic
 def transfer_money(request):
-    form = TransferForm()  # Instantiate form at the beginning of the function
+    form = TransferForm()
     user = request.user
 
     # Get the user's accounts
     source_accounts = Account.objects.filter(cust_id_id=user)
 
-    # Get unique account types
     source_account_types = source_accounts.values_list('account_type', flat=True).distinct()
     source_account_types = [account_type for account_type in source_account_types if account_type != 'L']
-    # print(source_accounts)
     account_types = [
         {'value': 'C', 'label': 'Checking'},
         {'value': 'S', 'label': 'Savings'},
@@ -365,10 +377,9 @@ def transfer_money(request):
             amount = transfer.amount
             first_name = transfer.recepient_first_name.lower()
             last_name = transfer.recepient_last_name.lower()
-            # Get source and destination account types
+
             destination_account_type = transfer.destination_account_type
-            # print(type(destination_account_number))
-            # destination_account = CustomUser.objects.get(destination_account_number)
+
             dest_account = fetch_account(destination_account_number.cust_id_id, destination_account_type)
             
             if dest_account is None:
@@ -385,16 +396,13 @@ def transfer_money(request):
                 otp_value = generate_otp()
                 cache_key = f"money_transfer_otp_{request.user.id}"
                 cache.set(cache_key, otp_value, OTP_EXPIRY_SECONDS)
-                messages.success(request, "Your otp is: "+otp_value+" It is valid for 180 seconds")
+                messages.success(request, "Your otp is: "+otp_value+". It is valid for 180 seconds")
                 return render(request, 'transfer_money.html', {'form': form, 'account_type_mapping': account_type_mapping, 'account_types': account_types,'show_otp': True, 'otp_value': otp_value, 'form_data': form_data})
-            # print(otp)
-            # messages.error(request, 'Your otp is ' + otp)
-            # print(otp)
+
             submitted_otp = request.POST.get('otp', '')
             print("submitted otp is "+ submitted_otp)
             cache_key = f"money_transfer_otp_{request.user.id}"
             cached_otp = cache.get(cache_key)
-            # print("Cached opt is" + cached_otp)
             if cached_otp is None or submitted_otp != cached_otp:
                 messages.error(request, 'Invalid OTP. Please try again.')
                 return redirect('transfer_money')  # Redirect back to transfer page
@@ -418,8 +426,6 @@ def transfer_money(request):
                 form.add_error(None, "Insufficient balance.")
     else:
         # Assuming you have a logged-in user
-        
-
         print(user)
 
     context = {
@@ -453,21 +459,18 @@ def add_money_to_account(request, account_type):
             saving_account = SavingAccount.objects.get(account_id=account.id)
             saving_account.balance += amount
             saving_account.save()
-        # Add more conditions for other account types if needed
 
         # Redirect to account details page after adding money
         messages.success(request, "Amount added successfully!")
-        return redirect('user_account')  # Update with the correct URL name for account details page
+        return redirect('user_account')
     else:
         # Redirect to the homepage if the request method is not POST
-        return redirect('home')  # Update with the correct URL name for the homepage
+        return redirect('home') 
     
 def add_insurance_information(request):
     if request.method == 'POST':
         form = InsuranceForm(request.POST)
         if form.is_valid():
-            # Process the form data and save to database
-            # For example:
             print(request.user.id)
             
             account = Account.objects.get(cust_id=request.user, account_type='L')
@@ -475,10 +478,7 @@ def add_insurance_information(request):
             yearly_ins_prem = form.cleaned_data['yearly_ins_prem']
             ins_company = form.save()
             HomeInsurance.objects.create(yearly_ins_prem=yearly_ins_prem, home_loan_id_id=home_loan.home_loan_id, company_id_id=ins_company.company_id)
-            # Save to database here
-
-            # Redirect to a success page or back to account details page
-            return redirect('view_insurance_information')  # Replace with your URL name for account details page
+            return redirect('view_insurance_information') 
     else:
         form = InsuranceForm()
     
@@ -494,3 +494,79 @@ def view_insurance_information(request):
     # Render the template with the insurance information
     return render(request, 'view_insurance_information.html', {'insurance_info': insurance_info, 'company_info': company_info, 'home_loan': home_loan, 'account': account})
 
+@staff_member_required
+def admin_analytics_view(request):
+    # Get data for analytics
+    accounts = Account.objects.all()
+    transactions = Transaction.objects.all()
+    saving_accounts = SavingAccount.objects.all()
+    checking_accounts = CheckingAccount.objects.all()
+    loan_accounts = LoanAccount.objects.all()
+
+    # Generate visualizations
+    fig, ax = plt.subplots()
+    account_types = accounts.values('account_type').annotate(count=Count('id'))
+
+    if account_types:
+        counts = [entry['count'] for entry in account_types]
+        labels = [entry['account_type'] for entry in account_types]
+        ax.pie(counts, labels=labels, autopct='%1.1f%%', startangle=90)
+        ax.axis('equal')  # Ensure the pie chart is circular
+        ax.set_title('Account Types Distribution')
+    else:
+        ax.set_title('No account types found')
+
+    # Convert the figure to a base64-encoded string
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+
+    # Render the template and pass the analytics data
+    return render(request, 'admin_analytics.html', {
+        'account_count': accounts.count(),
+        'transaction_count': transactions.count(),
+        'saving_account_count': saving_accounts.count(),
+        'checking_account_count': checking_accounts.count(),
+        'loan_account_count': loan_accounts.count(),
+        'visualization': image_base64
+    })
+    
+
+@staff_member_required
+def account_creation_graph(request):
+    # Query account creation dates and count the number of accounts created per day
+    account_creation_data = Account.objects.values('created_at__date').annotate(num_accounts=Count('id'))
+
+    # Extract dates and corresponding number of accounts created
+    dates = [entry['created_at__date'] for entry in account_creation_data]
+    num_accounts_created = [entry['num_accounts'] for entry in account_creation_data]
+
+    # Create the graph
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(dates, num_accounts_created, marker='o', linestyle='-', label='Number of Accounts Created')
+
+    # Add data point labels
+    for date, count in zip(dates, num_accounts_created):
+        ax.annotate(f'{count}', (date, count), textcoords="offset points", xytext=(0,10), ha='center')
+
+    ax.set_title('Number of Accounts Created per Day')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Number of Accounts')
+    plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+    plt.grid(True)
+    plt.tight_layout()
+
+    # Convert the figure to a base64-encoded string
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format='png')
+    buffer.seek(0)
+
+    # Pass the buffer content to the template
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    return render(request, 'account_creation_graph.html', {'graph_data': image_base64})
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomSetPasswordForm
+    success_url = reverse_lazy('password_reset_done')

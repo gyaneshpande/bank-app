@@ -116,9 +116,7 @@ class Account(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['cust_id', 'account_type'], name='unique_customer_account_type')
         ]
-    
-    # def __str__(self):
-    #     return f'Account id {self.id}, Account type {self.account_type}'
+
 
 class SavingAccount(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
@@ -158,10 +156,6 @@ class LoanAccount(models.Model):
     class Meta:
         unique_together = ('account_no', 'loan_type')
     
-    # def clean(self):
-    #     # Check if the associated Account instance has the correct account type
-    #     if self.account.account_type != 'L':
-    #         raise ValidationError("The parent Account must have an account type of 'L' or 'Loan'.")
 
 class PersonalLoan(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
