@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-12">
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-md overflow-hidden">
+        <div class="px-6 py-4">
+            <h2 class="text-3xl font-semibold mb-6 text-center">Register</h2>
+            <form method="post" class="grid grid-cols-2 gap-4">
+                {% csrf_token %}
+                <div>
+                    <label for="id_first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="text" id="id_first_name" name="first_name" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div>
+                    <label for="id_last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="text" id="id_last_name" name="last_name" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="text" id="id_username" name="username" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <label for="id_email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="email" id="id_email" name="email" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <label for="id_password1" class="block text-sm font-medium text-gray-700">Password</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="password" id="id_password1" name="password1" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <label for="id_password2" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="password" id="id_password2" name="password2" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div class="col-span-2">
+                    <label for="id_street" class="block text-sm font-medium text-gray-700">Street</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="text" id="id_street" name="street" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div>
+                    <label for="id_city" class="block text-sm font-medium text-gray-700">City</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="text" id="id_city" name="city" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <div>
+                    {{ form.state.label_tag }}
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        {{ form.state }}
+                    </div>
+                </div>
+                
+                <div class="col-span-2">
+                    <label for="id_zipcode" class="block text-sm font-medium text-gray-700">Zipcode</label>
+                    <div class="border border-gray-300 rounded-md px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                        <input type="text" id="id_zipcode" name="zipcode" class="block w-full border-0 p-0 text-gray-700">
+                    </div>
+                </div>
+                <button type="submit" class="col-span-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Register</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

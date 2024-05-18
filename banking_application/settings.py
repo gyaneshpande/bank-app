@@ -28,8 +28,12 @@ SECRET_KEY = 'django-insecure-@-d*^-0edxj&ggog0%ad70+6#-1bp$4k8bo_f!+h$-zs@x2v#z
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+APPEND_SLASH = True
 
 ALLOWED_HOSTS = []
+# settings.py
+
+LOGIN_REDIRECT_URL = '/accounts/'  # Replace '/accounts/' with the actual URL of your accounts page
 
 
 # Application definition
@@ -59,7 +63,7 @@ ROOT_URLCONF = 'banking_application.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,3 +134,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'bank.CustomUser'
+LOGIN_REDIRECT_URL = 'home'

@@ -1,5 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 STATE_CHOICES = (
@@ -66,9 +69,34 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
-        return f'{self.cust_id}'
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['cust_id'], name='unique_customer')
+        ]
 
+class CustomUser(AbstractUser):
+    street = models.CharField(max_length=30, null=True)
+    city = models.CharField(max_length=30, null=True)
+    state = models.CharField(max_length=2, null=True, choices=STATE_CHOICES)
+    zipcode = models.CharField(max_length=10, null=True)
+
+    class Meta:
+    # Add the unique_together constraint to ensure that usernames are unique
+        unique_together = ('username',)
+
+    # Define unique related_name attributes for groups and user_permissions
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        related_name='custom_user_groups'  # Provide a unique related_name
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        related_name='custom_user_permissions'  # Provide a unique related_name
+    )
 class Account(models.Model):
     ACCOUNT_TYPE_CHOICES = (
         ('S', 'Saving'),
@@ -81,16 +109,14 @@ class Account(models.Model):
     zipcode = models.CharField(max_length=10, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    cust_id = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    cust_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
     
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['cust_id', 'account_type'], name='unique_customer_account_type')
         ]
-    
-    def __str__(self):
-        return f'Account id {self.id}, Account type {self.account_type}'
+
 
 class SavingAccount(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
@@ -104,7 +130,7 @@ class SavingAccount(models.Model):
 class CheckingAccount(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
     account_no = models.AutoField(primary_key=True)
-    service_charge = models.DecimalField(max_digits=4, decimal_places=2, null=False)
+    service_charge = models.DecimalField(max_digits=6, decimal_places=2, null=False)
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -130,10 +156,6 @@ class LoanAccount(models.Model):
     class Meta:
         unique_together = ('account_no', 'loan_type')
     
-    def clean(self):
-        # Check if the associated Account instance has the correct account type
-        if self.account.account_type != 'L':
-            raise ValidationError("The parent Account must have an account type of 'L' or 'Loan'.")
 
 class PersonalLoan(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE)
@@ -182,3 +204,28 @@ class HomeInsurance(models.Model):
     yearly_ins_prem = models.DecimalField(max_digits=10, decimal_places=2, null=False)
     company_id = models.ForeignKey(Insurance, on_delete=models.CASCADE)
     home_loan_id = models.ForeignKey(HomeLoan, on_delete=models.CASCADE)
+    
+
+@receiver(post_save, sender=CustomUser)
+def create_customer_profile(sender, instance, created, **kwargs):
+    if created:
+        Customer.objects.create(
+            cust_id = instance.id,
+            first_name=instance.first_name,
+            last_name=instance.last_name,
+            street=instance.street,
+            city=instance.city,
+            state=instance.state,
+            zipcode=instance.zipcode
+        )
+
+class Transaction(models.Model):
+    source_account = models.ForeignKey(Account, related_name='source_transactions', on_delete=models.CASCADE)
+    destination_account = models.ForeignKey(Account, related_name='destination_transactions', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    source_account_type = models.CharField(max_length=1, choices=Account.ACCOUNT_TYPE_CHOICES)
+    destination_account_type = models.CharField(max_length=1, choices=Account.ACCOUNT_TYPE_CHOICES)
+    recepient_first_name = models.CharField(max_length=30, null=False)
+    recepient_last_name = models.CharField(max_length=30, null=False)
+

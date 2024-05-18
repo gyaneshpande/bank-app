@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-12">
+  <h2 class="text-3xl font-semibold mb-6">Transaction History</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source Account</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination Account</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recepient First Name</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recepient Last Name</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for transaction in transactions %}
+        <tr>
+          <td class="px-6 py-4 whitespace-nowrap">{{ transaction.timestamp }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ transaction.source_account_id }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ transaction.destination_account_id }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ transaction.recepient_first_name }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ transaction.recepient_last_name }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">{{ transaction.amount }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto py-12">
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-md overflow-hidden">
+        <div class="px-6 py-4">
+            <h2 class="text-3xl font-semibold mb-6 text-center">Add Insurance Information</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="id_company_name" class="block text-sm font-medium text-gray-700">Company Name:</label>
+                    {{ form.company_name }}
+                </div>
+                <div>
+                    <label for="id_street" class="block text-sm font-medium text-gray-700">Street:</label>
+                    {{ form.street }}
+                </div>
+                <div>
+                    <label for="id_city" class="block text-sm font-medium text-gray-700">City:</label>
+                    {{ form.city }}
+                </div>
+                <div>
+                    <label for="id_state" class="block text-sm font-medium text-gray-700">State:</label>
+                    {{ form.state }}
+                </div>
+                <div>
+                    <label for="id_zipcode" class="block text-sm font-medium text-gray-700">Zipcode:</label>
+                    {{ form.zipcode }}
+                </div>
+                <div>
+                    <label for="id_yearly_ins_prem" class="block text-sm font-medium text-gray-700">Yearly Insurance Premium:</label>
+                    {{ form.yearly_ins_prem }}
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

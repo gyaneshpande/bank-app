@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions Per Month</title>
+</head>
+<body>
+    <canvas id="transactionsPerMonthChart" width="400" height="400"></canvas>
+    <script>
+        fetch('/admin/transactions-per-month/')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('transactionsPerMonthChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'Total Amount of Transactions',
+                            data: data.data,
+                            fill: false,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    }
+                });
+            });
+    </script>
+</body>
+</html>

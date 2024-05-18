@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-12">
+  <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+    <div class="px-6 py-4">
+      {% if account.account_type == 'C' %}
+        <h2 class="text-3xl font-semibold mb-4 text-center">Checking Account Details</h2>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Service Charge:</p>
+          <p class="text-lg">{{ checking_account.service_charge }}%</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Balance:</p>
+          <p class="text-lg">${{ checking_account.balance }}</p>
+        </div>
+      {% elif account.account_type == 'S' %}
+        <h2 class="text-3xl font-semibold mb-4 text-center">Saving Account Details</h2>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Interest Rate:</p>
+          <p class="text-lg">{{ saving_account.interest_rate }}%</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Balance:</p>
+          <p class="text-lg">${{ saving_account.balance }}</p>
+        </div>
+        {% elif account.account_type == 'L' %}
+        <h2 class="text-3xl font-semibold mb-4 text-center">Loan Account Details</h2>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Loan Type:</p>
+          <p class="text-lg">{{ loan_account.loan_type }}</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Loan Amount:</p>
+          <p class="text-lg">${{ loan_account.loan_amount }}</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Loan Months:</p>
+          <p class="text-lg">{{ loan_account.loan_months }}</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Loan Rate:</p>
+          <p class="text-lg">{{ loan_account.loan_rate }}%</p>
+        </div>
+        <div class="mb-4">
+          <p class="text-lg font-semibold">Loan Payment:</p>
+          <p class="text-lg">${{ loan_account.loan_payment }}</p>
+        </div>
+      <div class="mt-6">
+        <p class="text-lg font-semibold">Date Opened:</p>
+        <p class="text-lg">{{ account.created_at }}</p>
+      </div>
+
+      {% if loan_account.loan_type == 'HL' %}
+          {% if insurance_exists %}
+            <a href="{% url 'view_insurance_information' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">View Insurance Information</a>
+          {% else %}
+            <a href="{% url 'add_insurance_information' %}" class="block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Add Insurance Information</a>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+      
+      {% if account.account_type == 'C' or account.account_type == 'S' %}
+      <div class="mt-6">
+        <form action="{% url 'add_money_to_account' account_type=account.account_type %}" method="post">
+          {% csrf_token %}
+          <label for="amount" class="block text-lg font-semibold mb-2">Add Money:</label>
+          <input type="number" step="0.01" id="amount" name="amount" class="block w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500" required>
+          <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-4 rounded">Add Money</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

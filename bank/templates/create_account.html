@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto py-12">
+  <div class="max-w-md mx-auto bg-white shadow-lg rounded-md overflow-hidden">
+    <div class="px-6 py-4">
+      <h2 class="text-3xl font-semibold mb-6 text-center">Create {{ account_type|title }} Account</h2>
+
+      {% if account_exists %}
+        <div class="mb-4 text-center">
+          <p>You already have a {{ account_type|lower }} account.</p>
+          <a href="{% url 'user_account' %}" class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Go to Account</a>
+        </div>
+      {% else %}
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-6">
+            {% for field in form %}
+              <div class="mb-4">
+                {{ field.label_tag }}
+                {{ field }}
+              </div>
+            {% endfor %}
+          </div>
+          <div class="text-center">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Create Account</button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
